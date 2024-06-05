@@ -14,3 +14,8 @@ export async function createUser() {
     })
     return Response.json('ok')
 };
+
+export async function getUser() {
+  const user = await prisma.user.findMany();
+  return user;
+};
