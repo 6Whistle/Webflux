@@ -10,7 +10,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-import com.whitle6.webfluxdemo.common.exception.CustomException;
+// import com.whistle6.webfluxdemo.common.exception.CustomException;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
@@ -19,14 +19,14 @@ import reactor.core.publisher.Signal;
 
 
 public class FluxAndMonoTest {
-    @Mock CustomException customExceptionMono;
-    @Mock CustomException customExceptionFlux;
+    // @Mock CustomException customExceptionMono;
+    // @Mock CustomException customExceptionFlux;
     
-    @BeforeEach
-    void setUp() {
-        customExceptionMono = new CustomException("Mono Exception");
-        customExceptionFlux = new CustomException("Flux Exception");
-    }
+    // @BeforeEach
+    // void setUp() {
+    //     customExceptionMono = new CustomException("Mono Exception");
+    //     customExceptionFlux = new CustomException("Flux Exception");
+    // }
 
     @Test @DisplayName("Test Mono")
     void MonoJustTest(){

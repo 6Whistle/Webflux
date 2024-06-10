@@ -1,8 +1,10 @@
-FROM openjdk:17-jdk-alpine as builder
-LABEL maintainer="6whistle"
-CMD ["./gradlew", "clean", "build"]
-ARG JAR_FILE=/build/libs/*.jar
+FROM gradle:8.7.0-jdk17-alpine AS builder
+COPY --chown=gradle:gradle . /gradle/
+WORKDIR /gradle
+RUN gradle build --no-daemon
+FROM openjdk:17-alpine
 RUN mkdir /app
-COPY ${JAR_FILE} /app/app.jar
+COPY --from=builder /gradle/build/libs/*.jar /app/app.jar
+ARG PROFILE
 EXPOSE 8080
-ENTRYPOINT ["java","-jar","/app/app.jar"]
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
