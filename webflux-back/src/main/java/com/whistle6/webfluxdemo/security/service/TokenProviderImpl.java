@@ -44,7 +44,8 @@ class TokenProviderImpl implements TokenProvider {
         return generateToken(Map.of(), userDetails);
     }
 
-    boolean isTokenValid(String jwt){
+    @Override
+    public boolean isTokenValid(String jwt){
         return !isTokenExpired(jwt);
     }
 
