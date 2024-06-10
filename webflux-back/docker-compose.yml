@@ -3,6 +3,7 @@ services:
   mongodb:
     image: mongo
     container_name: mongodb
+    hostname: mongo
     ports:
       - 27017:27017
     volumes:
@@ -11,3 +12,21 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=root
       - MONGO_INITDB_ROOT_PASSWORD=root
       - MONGO_INITDB_DATABASE=fluxdb
+    networks:
+      - flux-network
+  
+  backend:
+    container_name: backend
+    build: 
+      context: .
+    restart: always
+    ports:
+      - 8080:8080
+    depends_on:
+      - mongodb
+    networks:
+      - flux-network
+
+networks:
+  flux-network:
+    driver: bridge
