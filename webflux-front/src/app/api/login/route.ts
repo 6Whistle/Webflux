@@ -4,9 +4,10 @@ import { SignJWT } from 'jose';
 import { getJwtSecretKey } from "@/lib/server/auth";
 
 import { UserData, UserDataPublic } from '@/types/UserData.type';
+import { NextApiResponse } from 'next';
 
 export interface I_ApiUserLoginRequest {
-	login: string;
+	email: string;
 	password: string;
 }
 
@@ -33,11 +34,11 @@ export async function POST(request: Request) {
 	const body = (await request.json()) as I_ApiUserLoginRequest;
 
 	// trim all values
-	const { login, password } = Object.fromEntries(
+	const { email, password } = Object.fromEntries(
 		Object.entries(body).map(([key, value]) => [key, value.trim()]),
 	) as I_ApiUserLoginRequest;
 
-	if (!login || !password) {
+	if (!email || !password) {
 		const res: I_ApiUserLoginResponse = {
 			success: false,
 			message: 'Either login or password is missing',
@@ -46,87 +47,105 @@ export async function POST(request: Request) {
 		return NextResponse.json(res, { status: 400 });
 	}
 
-	try {
-		// Validate login and password
-		try {
-			if (!userData) {
-				throw new Error('User not found');
-			}
-			if (userData.email !== login) {
-				throw new Error('Invalid login');
-			}
-			if (userData.password !== password) {
-				throw new Error('Invalid password');
-			}
-		} catch (error) {
-			let mess = 'Something went wrong';
-			if (error instanceof Error) {
-				mess = error.message;
-			}
-			console.error(`Login failed: ${mess}`);
-			return NextResponse.json(
-				{
-					success: false,
-					message: 'Invalid login or password',
-				},
-				{ status: 401 },
-			);
+	const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/`, 
+		{
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+				"Access-Control-Allow-Origin": "*",
+			},
+			// body: JSON.stringify({ email, password }),
 		}
+	)
+	.then((response) => {
+		return NextResponse.json({ success: false, message: "SOCCESS" + JSON.stringify(response) }, { status: 401 })}
+	)
+	.catch((error) => {
+		return NextResponse.json({ success: false, message: "FAILURE" + JSON.stringify(error) }, { status: 401 })}
+	)
+	return response
 
-		const token = await new SignJWT({
-			id: userData.id,
-			firstName: userData.firstName,
-			lastName: userData.lastName,
-			email: userData.email,
-			phone: userData.phone,
-			password: userData.password,
-			role: userData.role,
-		})
-			.setProtectedHeader({ alg: 'HS256' })
-			.setIssuedAt()
-			.setExpirationTime(`${jwtExpires}s`)
-			.sign(getJwtSecretKey());
+	// try {
+	// 	// Validate login and password
+	// 	try {
+	// 		if (!userData) {
+	// 			throw new Error('User not found');
+	// 		}
+	// 		if (userData.email !== login) {
+	// 			throw new Error('Invalid login');
+	// 		}
+	// 		if (userData.password !== password) {
+	// 			throw new Error('Invalid password');
+	// 		}
+	// 	} catch (error) {
+	// 		let mess = 'Something went wrong';
+	// 		if (error instanceof Error) {
+	// 			mess = error.message;
+	// 		}
+	// 		console.error(`Login failed: ${mess}`);
+	// 		return NextResponse.json(
+	// 			{
+	// 				success: false,
+	// 				message: 'Invalid login or password',
+	// 			},
+	// 			{ status: 401 },
+	// 		);
+	// 	}
 
-		const res: I_ApiUserLoginResponse = {
-			success: true,
-			userData,
-		};
+	// 	const token = await new SignJWT({
+	// 		id: userData.id,
+	// 		firstName: userData.firstName,
+	// 		lastName: userData.lastName,
+	// 		email: userData.email,
+	// 		phone: userData.phone,
+	// 		password: userData.password,
+	// 		role: userData.role,
+	// 	})
+	// 		.setProtectedHeader({ alg: 'HS256' })
+	// 		.setIssuedAt()
+	// 		.setExpirationTime(`${jwtExpires}s`)
+	// 		.sign(getJwtSecretKey());
 
-		const response = NextResponse.json(res);
+	// 	const res: I_ApiUserLoginResponse = {
+	// 		success: true,
+	// 		userData,
+	// 	};
 
-		// Set encoded token as cookie
-		response.cookies.set({
-			name: 'token',
-			value: token,
-			path: '/',
-		});
+	// 	const response = NextResponse.json(res);
 
-		// Create public user data
-		const userDataPublic: UserDataPublic = {
-			id: userData.id,
-			firstName: userData.firstName,
-			lastName: userData.lastName,
-			email: userData.email,
-			phone: userData.phone,
-			role: userData.role,
-		};
+	// 	// Set encoded token as cookie
+	// 	response.cookies.set({
+	// 		name: 'token',
+	// 		value: token,
+	// 		path: '/',
+	// 	});
 
-		// Set public user data as cookie
-		response.cookies.set({
-			name: 'userData',
-			value: JSON.stringify(userDataPublic),
-			path: '/',
-		});
+	// 	// Create public user data
+	// 	const userDataPublic: UserDataPublic = {
+	// 		id: userData.id,
+	// 		firstName: userData.firstName,
+	// 		lastName: userData.lastName,
+	// 		email: userData.email,
+	// 		phone: userData.phone,
+	// 		role: userData.role,
+	// 	};
 
-		return response;
-	} catch (error: any) {
-		console.error(error);
+	// 	// Set public user data as cookie
+	// 	response.cookies.set({
+	// 		name: 'userData',
+	// 		value: JSON.stringify(userDataPublic),
+	// 		path: '/',
+	// 	});
 
-		const res: I_ApiUserLoginResponse = {
-			success: false,
-			message: error.message || 'Something went wrong',
-		};
+	// 	return response;
+	// } catch (error: any) {
+	// 	console.error(error);
 
-		return NextResponse.json(res, { status: 500 });
-	}
+	// 	const res: I_ApiUserLoginResponse = {
+	// 		success: false,
+	// 		message: error.message || 'Something went wrong',
+	// 	};
+
+		// return NextResponse.json(res, { status: 500 });
+	// }
 }

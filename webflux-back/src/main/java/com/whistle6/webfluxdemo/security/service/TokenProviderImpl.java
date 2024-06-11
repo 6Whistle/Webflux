@@ -24,10 +24,10 @@ import io.jsonwebtoken.security.Keys;
 @Service
 class TokenProviderImpl implements TokenProvider {
 
-    @Value("${jwt.secret-key}")
+    @Value("${jwt.secret}")
     private String secretKey;
 
-    @Value("${jwt.token-expiration-seconds}")
+    @Value("${jwt.expiration}")
     private long tokenExpiration;
 
     String extractUsername(String jwt){

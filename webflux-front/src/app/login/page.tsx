@@ -33,7 +33,7 @@ export default function LoginPage() {
 				throw new Error('Please enter your credentials.');
 
 			const payload: I_ApiUserLoginRequest = {
-				login: loginRef.current?.value,
+				email: loginRef.current?.value,
 				password: passwordRef.current?.value,
 			};
 
