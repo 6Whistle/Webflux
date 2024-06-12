@@ -2,6 +2,7 @@ package com.whistle6.webfluxdemo.user.service;
 
 import org.springframework.stereotype.Service;
 
+import com.whistle6.webfluxdemo.security.domain.LoginDTO;
 import com.whistle6.webfluxdemo.user.domain.UserModel;
 import com.whistle6.webfluxdemo.user.repository.UserRepository;
 
@@ -61,6 +62,16 @@ public class UserServiceImpl implements UserService{
     @Override
     public Flux<UserModel> findUsersByLastName(String lastName) {
         return userRepository.findByLastName(lastName);
+    }
+
+    @Override
+    public Mono<UserModel> login(LoginDTO loginDTO) {
+        return userRepository.findByEmail(loginDTO.getEmail())
+            .filter(i -> i.getPassword().equals(loginDTO.getPassword()))
+            .map(i -> {
+                i.setPassword("");
+                return i;
+            });
     }
     
 }

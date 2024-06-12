@@ -81,7 +81,7 @@ export async function POST(request: Request) {
 			})
 			return response
 		})
-		: NextResponse.json({ success: false, message: (await apiRes.json()).data }, { status: 401 })
+		: NextResponse.json({ success: false, message: (await apiRes.json()).message }, { status: 401 })
 	})
 	.catch(async (error) => {
 		return NextResponse.json({ success: false, message: JSON.stringify(error) }, { status: 400 })}

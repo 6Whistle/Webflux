@@ -13,7 +13,7 @@ import lombok.ToString;
 @Data
 @ToString(exclude = "password")
 @Builder
-@Document
+@Document("users")
 public class UserModel {
     @Id
     private String id;
