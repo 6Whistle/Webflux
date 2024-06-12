@@ -1,16 +1,11 @@
 package com.whistle6.webfluxdemo.user.domain;
 
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.experimental.FieldDefaults;
 
 @Data
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class RoleModel {
-    Long id ;
 
-    RoleName roleName ;
-    
-    public RoleModel(RoleName roleName) {this.roleName = roleName;}
-    
-    public String getRoleName() {
-        return roleName.toString();
-    }
 }

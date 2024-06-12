@@ -19,25 +19,26 @@ export async function middleware(request: NextRequest) {
 	}`;
 
 	if (authRoutes.some(pattern => matchesWildcard(request.nextUrl.pathname, pattern))) {
-		const token = request.cookies.get('token');
+		const token = request.cookies.get('accessToken');
 
 		if (!token) {
 			return NextResponse.redirect(LOGIN);
 		}
 
-		try {
-			const payload = await verifyJwtToken(token.value);
 
-			if (!payload) {
-				// Delete token
-				request.cookies.delete('token');
-				return NextResponse.redirect(LOGIN);
-			}
-		} catch (error) {
-			// Delete token
-			request.cookies.delete('token');
-			return NextResponse.redirect(LOGIN);
-		}
+		// try {
+		// 	const payload = await verifyJwtToken(token.value);
+
+		// 	if (!payload) {
+		// 		// Delete token
+		// 		request.cookies.delete('token');
+		// 		return NextResponse.redirect(LOGIN);
+		// 	}
+		// } catch (error) {
+		// 	// Delete token
+		// 	request.cookies.delete('token');
+		// 	return NextResponse.redirect(LOGIN);
+		// }
 	}
 
 	let redirectToApp = false;

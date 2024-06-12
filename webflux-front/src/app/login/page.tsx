@@ -1,13 +1,14 @@
 'use client';
 import React, { useRef, useState } from 'react';
 
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useApp } from '@/contexts/AppContext';
 
 import { I_ApiUserLoginRequest, I_ApiUserLoginResponse } from '../api/login/route';
 
 export default function LoginPage() {
 	const { userData, setUserData } = useApp();
+	const router = useRouter()
 
 	// Utils
 	const searchParams = useSearchParams();
@@ -46,6 +47,7 @@ export default function LoginPage() {
 			});
 
 			const data: I_ApiUserLoginResponse = await response.json();
+			console.log(data);
 
 			if (data.success) {
 				setLoginIsComplete(true);

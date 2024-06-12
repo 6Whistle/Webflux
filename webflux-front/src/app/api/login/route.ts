@@ -47,7 +47,7 @@ export async function POST(request: Request) {
 		return NextResponse.json(res, { status: 400 });
 	}
 
-	return await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/user/login`, 
+	return await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/login`, 
 		{
 			method: 'POST',
 			headers: {
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
 			const response = NextResponse.json({ success: true, message: "SUCCESS" }, { status: 200 })
 			response.cookies.set({
 				name: 'userData',
-				value: JSON.stringify(json.data),
+				value: JSON.stringify(json.data as UserData),
 				path: '/',
 				expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
 			})
