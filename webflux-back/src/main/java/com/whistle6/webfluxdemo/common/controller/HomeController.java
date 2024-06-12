@@ -12,7 +12,7 @@ import reactor.core.publisher.Mono;
 @Slf4j
 @RestController
 public class HomeController {
-    @GetMapping("/api/home")
+    @GetMapping("/api")
     public Mono<String> home() {
         log.info("Home page accessed");
         return Mono.just(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) + " Welcome to WebFlux Demo!");

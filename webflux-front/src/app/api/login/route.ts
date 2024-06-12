@@ -20,15 +20,15 @@ export interface I_ApiUserLoginResponse {
 export const dynamic = 'force-dynamic';
 const jwtExpires = 60 * 60 * 24 * 7; // 7 days
 
-const userData: UserData = {
-	id: 1,
-	firstName: 'John',
-	lastName: 'Doe',
-	email: 'john@example.com',
-	phone: '+1 234 567 890',
-	password: '12345', // the kind of password an idiot would have on his luggage
-	role: 'user',
-};
+// const userData: UserData = {
+// 	id: 1,
+// 	firstName: 'John',
+// 	lastName: 'Doe',
+// 	email: 'john@example.com',
+// 	phone: '+1 234 567 890',
+// 	password: '12345', // the kind of password an idiot would have on his luggage
+// 	role: 'user',
+// };
 
 export async function POST(request: Request) {
 	const body = (await request.json()) as I_ApiUserLoginRequest;
@@ -47,105 +47,43 @@ export async function POST(request: Request) {
 		return NextResponse.json(res, { status: 400 });
 	}
 
-	const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/`, 
+	return await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/user/login`, 
 		{
-			method: 'GET',
+			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				"Access-Control-Allow-Origin": "*",
 			},
-			// body: JSON.stringify({ email, password }),
+			body: JSON.stringify({ email, password }),
 		}
 	)
-	.then((response) => {
-		return NextResponse.json({ success: false, message: "SOCCESS" + JSON.stringify(response) }, { status: 401 })}
+	.then(async (apiRes) => {
+		return apiRes.ok ? 
+		apiRes.json()
+		.then((json) => {
+			const response = NextResponse.json({ success: true, message: "SUCCESS" }, { status: 200 })
+			response.cookies.set({
+				name: 'userData',
+				value: JSON.stringify(json.data),
+				path: '/',
+				expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
+			})
+			response.cookies.set({
+				name: 'accessToken',
+				value: json.accessToken,
+				path: '/',
+				expires: new Date(Date.now() + 1000 * 60 * 60),
+			})
+			response.cookies.set({
+				name: 'refreshToken',
+				value: json.refreshToken,
+				path: '/',
+				expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
+			})
+			return response
+		})
+		: NextResponse.json({ success: false, message: (await apiRes.json()).data }, { status: 401 })
+	})
+	.catch(async (error) => {
+		return NextResponse.json({ success: false, message: JSON.stringify(error) }, { status: 400 })}
 	)
-	.catch((error) => {
-		return NextResponse.json({ success: false, message: "FAILURE" + JSON.stringify(error) }, { status: 401 })}
-	)
-	return response
-
-	// try {
-	// 	// Validate login and password
-	// 	try {
-	// 		if (!userData) {
-	// 			throw new Error('User not found');
-	// 		}
-	// 		if (userData.email !== login) {
-	// 			throw new Error('Invalid login');
-	// 		}
-	// 		if (userData.password !== password) {
-	// 			throw new Error('Invalid password');
-	// 		}
-	// 	} catch (error) {
-	// 		let mess = 'Something went wrong';
-	// 		if (error instanceof Error) {
-	// 			mess = error.message;
-	// 		}
-	// 		console.error(`Login failed: ${mess}`);
-	// 		return NextResponse.json(
-	// 			{
-	// 				success: false,
-	// 				message: 'Invalid login or password',
-	// 			},
-	// 			{ status: 401 },
-	// 		);
-	// 	}
-
-	// 	const token = await new SignJWT({
-	// 		id: userData.id,
-	// 		firstName: userData.firstName,
-	// 		lastName: userData.lastName,
-	// 		email: userData.email,
-	// 		phone: userData.phone,
-	// 		password: userData.password,
-	// 		role: userData.role,
-	// 	})
-	// 		.setProtectedHeader({ alg: 'HS256' })
-	// 		.setIssuedAt()
-	// 		.setExpirationTime(`${jwtExpires}s`)
-	// 		.sign(getJwtSecretKey());
-
-	// 	const res: I_ApiUserLoginResponse = {
-	// 		success: true,
-	// 		userData,
-	// 	};
-
-	// 	const response = NextResponse.json(res);
-
-	// 	// Set encoded token as cookie
-	// 	response.cookies.set({
-	// 		name: 'token',
-	// 		value: token,
-	// 		path: '/',
-	// 	});
-
-	// 	// Create public user data
-	// 	const userDataPublic: UserDataPublic = {
-	// 		id: userData.id,
-	// 		firstName: userData.firstName,
-	// 		lastName: userData.lastName,
-	// 		email: userData.email,
-	// 		phone: userData.phone,
-	// 		role: userData.role,
-	// 	};
-
-	// 	// Set public user data as cookie
-	// 	response.cookies.set({
-	// 		name: 'userData',
-	// 		value: JSON.stringify(userDataPublic),
-	// 		path: '/',
-	// 	});
-
-	// 	return response;
-	// } catch (error: any) {
-	// 	console.error(error);
-
-	// 	const res: I_ApiUserLoginResponse = {
-	// 		success: false,
-	// 		message: error.message || 'Something went wrong',
-	// 	};
-
-		// return NextResponse.json(res, { status: 500 });
-	// }
 }
