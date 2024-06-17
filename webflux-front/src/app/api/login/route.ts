@@ -65,19 +65,19 @@ export async function POST(request: Request) {
 				name: 'userData',
 				value: JSON.stringify(json.data as UserData),
 				path: '/',
-				expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
+				expires: new Date(Date.now() + json.refreshExpired),
 			})
 			response.cookies.set({
 				name: 'accessToken',
 				value: json.accessToken,
 				path: '/',
-				expires: new Date(Date.now() + 1000 * 60 * 60),
+				expires: new Date(Date.now() + json.accessExpired),
 			})
 			response.cookies.set({
 				name: 'refreshToken',
 				value: json.refreshToken,
 				path: '/',
-				expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
+				expires: new Date(Date.now() + json.refreshExpired),
 			})
 			return response
 		})

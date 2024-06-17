@@ -3,7 +3,6 @@ package com.whistle6.webfluxdemo.chat.domain.model;
 import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.TypeAlias;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import lombok.AllArgsConstructor;

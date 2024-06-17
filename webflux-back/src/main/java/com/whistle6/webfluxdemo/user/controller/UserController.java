@@ -37,7 +37,7 @@ public class UserController {
         log.info("Login request received : {}", entity);
         return userService.login(entity)
             .map(i -> ResponseEntity.ok(i))
-            .defaultIfEmpty(ResponseEntity.badRequest().body(Messenger.builder().message("User not found").build()));
+            .switchIfEmpty(Mono.just(ResponseEntity.badRequest().body(Messenger.builder().message("User not found").build())));
     }
 
     @GetMapping("/logout")

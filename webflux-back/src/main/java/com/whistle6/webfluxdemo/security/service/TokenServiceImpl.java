@@ -11,10 +11,12 @@ import org.springframework.stereotype.Service;
 import com.whistle6.webfluxdemo.security.domain.TokenModel;
 import com.whistle6.webfluxdemo.security.repository.TokenRepository;
 import com.whistle6.webfluxdemo.user.domain.UserModel;
+import com.whistle6.webfluxdemo.user.repository.UserRepository;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
@@ -24,31 +26,31 @@ import reactor.core.publisher.Mono;
 class TokenServiceImpl implements TokenService {
 
     private final TokenRepository tokenRepository;
+    private final UserRepository userRepository;
 
     @Value("${jwt.secret}")
     private String secretKey;
 
+    @Getter
     @Value("${jwt.expired.access}")
-    private long accessTokenExpired;
+    private Long accessTokenExpired;
 
+    @Getter
     @Value("${jwt.expired.refresh}")
-    private long refreshTokenExpired;
+    private Long refreshTokenExpired;
 
     private SecretKey getSigningKey() {
         byte[] bytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(bytes);
     }
 
-    public String createRefreshToken(UserModel user){
-        Mono<String> token =  tokenRepository.save(TokenModel.builder()
+    public Mono<String> createRefreshToken(UserModel user){
+        return tokenRepository.save(TokenModel.builder()
         .email(user.getEmail())
         .refreshToken(generateToken(user, true))
         .expiredAt(Instant.now().plusSeconds(refreshTokenExpired))
         .build())
-        .map(i -> i.getRefreshToken());
-        
-        token.subscribe();
-        return token.block();
+        .flatMap(i -> Mono.just(i.getRefreshToken()));
     }
 
     public String generateToken(UserModel user, Boolean isRefreshToken){
@@ -60,6 +62,13 @@ class TokenServiceImpl implements TokenService {
         .claim("email", user.getEmail())
         .signWith(getSigningKey(), Jwts.SIG.HS256)
         .compact();
+    }
+
+    public Mono<UserModel> isRefreshTokenValid(String jwt){
+        return tokenRepository.findByRefreshToken(jwt)
+        .filter(i -> i.getExpiredAt().isAfter(Instant.now()))
+        .flatMap(i -> userRepository.findByEmail(i.getEmail()))
+        .switchIfEmpty(Mono.empty());
     }
 
     // String extractUsername(String jwt){

@@ -1,46 +1,71 @@
 package com.whistle6.webfluxdemo.chat.service;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.stereotype.Service;
 
 import com.whistle6.webfluxdemo.chat.domain.dto.ChatDTO;
 import com.whistle6.webfluxdemo.chat.domain.model.ChatModel;
 import com.whistle6.webfluxdemo.chat.repository.ChatRepository;
-import com.whistle6.webfluxdemo.common.domain.Messenger;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 
 @Service
 @RequiredArgsConstructor
 public class ChatServiceImpl implements ChatService{
     private final ChatRepository chatRepository;
+    private final Map<String, Sinks.Many<ServerSentEvent<ChatDTO>>> sinks = new HashMap<>();
 
     @Override
     public Flux<ChatDTO> receiveByRoomId(String id) {
-        return chatRepository.findByRoomId(id).map(i -> 
-            ChatDTO.builder()
-            .id(i.getId())
-            .roomId(i.getRoomId())
-            .msg(i.getMsg())
-            .sender(i.getSender())
-            .createdAt(LocalDateTime.now())
-            .build());
+        return null;
     }
 
     @Override
-    public Mono<ChatDTO> save(ChatModel entity) {
-        return chatRepository.save(entity)
-        .flatMap(i -> Mono.just(
-            ChatDTO.builder()
+    public Mono<Boolean> save(ChatModel entity) {
+        return Mono.just(entity)
+        .flatMap(i -> {
+            i.setCreatedAt(LocalDateTime.now());
+            return Mono.just(i);
+        })
+        .flatMap(i -> chatRepository.save(i))
+        .doOnNext(i -> {
+            if(sinks.containsKey(i.getRoomId())){
+                sinks.get(i.getRoomId()).tryEmitNext(ServerSentEvent.builder(ChatDTO.builder()
+                .id(i.getId())
+                .roomId(i.getRoomId())
+                .msg(i.getMsg())
+                .sender(i.getSender())
+                .createdAt(i.getCreatedAt())
+                .build()).build());
+            }
+        })
+        .flatMap(i -> Mono.just(Boolean.TRUE))
+        .switchIfEmpty(Mono.just(Boolean.FALSE));
+    }
+
+    public Flux<ServerSentEvent<ChatDTO>> connect(String roomId){
+        if(sinks.containsKey(roomId))
+            return sinks.get(roomId).asFlux();
+        sinks.put(roomId, Sinks.many().multicast().onBackpressureBuffer());
+        chatRepository.findByRoomId(roomId).subscribe(i -> {
+            sinks.get(roomId).tryEmitNext(ServerSentEvent.builder(ChatDTO.builder()
             .id(i.getId())
-            .roomId(i.getRoomId())
             .msg(i.getMsg())
             .sender(i.getSender())
-            .createdAt(LocalDateTime.now())
-            .build()));
+            .createdAt(i.getCreatedAt())
+            .build()).build());
+        });
+        return sinks.get(roomId).asFlux().doOnCancel(() -> {
+            sinks.get(roomId).tryEmitComplete();
+            sinks.remove(roomId);
+        });
     }
     
 }

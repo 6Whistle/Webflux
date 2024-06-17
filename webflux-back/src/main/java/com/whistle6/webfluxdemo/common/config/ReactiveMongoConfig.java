@@ -13,7 +13,6 @@ import com.whistle6.webfluxdemo.user.domain.RoleName;
 import com.whistle6.webfluxdemo.user.domain.UserModel;
 
 import lombok.RequiredArgsConstructor;
-import reactor.core.publisher.Mono;
 
 @Configuration
 @RequiredArgsConstructor

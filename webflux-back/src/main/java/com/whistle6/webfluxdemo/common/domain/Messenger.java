@@ -9,5 +9,7 @@ public class Messenger {
     private String message;
     private Object data;
     private String accessToken;
+    private Long accessExpired;
     private String refreshToken; 
+    private Long refreshExpired;
 }

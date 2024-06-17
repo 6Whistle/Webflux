@@ -74,20 +74,23 @@ public class UserServiceImpl implements UserService{
     public Mono<Messenger> login(LoginDTO loginDTO) {
         return userRepository.findByEmail(loginDTO.getEmail())
             .filter(i -> i.getPassword().equals(loginDTO.getPassword()))
-            .log()
+            .flatMap(i -> tokenService.createRefreshToken(i).flatMap(j -> Mono.just(List.of(i, j))))
             .flatMap(i -> Mono.just(Messenger.builder()
                 .data(
                     UserDTO.builder()
-                    .id(i.getId())
-                    .email(i.getEmail())
-                    .firstName(i.getFirstName())
-                    .lastName(i.getLastName())
+                    .id(((UserModel)i.get(0)).getId())
+                    .email(((UserModel)i.get(0)).getEmail())
+                    .firstName(((UserModel)i.get(0)).getFirstName())
+                    .lastName(((UserModel)i.get(0)).getLastName())
                     .build()
                 )
                 .message("Login success")
-                .accessToken(tokenService.generateToken(i, false))
-                .refreshToken(tokenService.createRefreshToken(i))
+                .accessToken(tokenService.generateToken(((UserModel)i.get(0)), false))
+                .accessExpired(tokenService.getAccessTokenExpired())
+                .refreshToken((String)i.get(1))
+                .refreshExpired(tokenService.getRefreshTokenExpired())
                 .build())
+                .log()
             );
     }
     
