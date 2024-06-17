@@ -1,5 +1,6 @@
 package com.whistle6.webfluxdemo.user.controller;
 
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,7 +17,10 @@ import com.whistle6.webfluxdemo.user.service.UserService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
+
 import org.springframework.web.bind.annotation.RequestMapping;
 
 
@@ -42,10 +46,10 @@ public class UserController {
         return Mono.just(ResponseEntity.ok(Messenger.builder().data("LOGOUT SUCCESS").build()));
     }
     
-    @GetMapping("/all")
-    public Mono<ResponseEntity<Messenger>> all(@RequestHeader("Authentication") String accessToken) {
+    @GetMapping(path = "/all", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<Messenger> all(@RequestHeader(name = "Authentication", required = false) String accessToken) {
         log.info("All user request received : {}", accessToken);
-        return userService.findAllUsers().collectList().map(i -> ResponseEntity.ok(Messenger.builder().data(i).build()));
+        return userService.findAllUsers().map(i -> Messenger.builder().data(i).build()).subscribeOn(Schedulers.boundedElastic());
     }
 
     @GetMapping("/detail/{id}")
