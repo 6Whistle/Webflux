@@ -10,6 +10,6 @@ import reactor.core.publisher.Flux;
 
 @Repository
 public interface ChatRepository extends ReactiveMongoRepository<ChatModel, String>{
-    // @Tailable
+    @Tailable
     Flux<ChatModel> findByRoomId(String roomId);
 }

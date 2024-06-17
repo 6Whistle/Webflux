@@ -36,7 +36,7 @@ public class UserController {
     public Mono<ResponseEntity<Messenger>> login(@RequestBody LoginDTO entity) {
         log.info("Login request received : {}", entity);
         return userService.login(entity)
-            .map(i -> ResponseEntity.ok(Messenger.builder().data(i).accessToken("test_access_token").refreshToken("test_refresh_token").build()))
+            .map(i -> ResponseEntity.ok(i))
             .defaultIfEmpty(ResponseEntity.badRequest().body(Messenger.builder().message("User not found").build()));
     }
 

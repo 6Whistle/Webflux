@@ -1,8 +1,13 @@
 package com.whistle6.webfluxdemo.user.service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
+import com.whistle6.webfluxdemo.common.domain.Messenger;
 import com.whistle6.webfluxdemo.security.domain.LoginDTO;
+import com.whistle6.webfluxdemo.security.service.TokenService;
+import com.whistle6.webfluxdemo.user.domain.UserDTO;
 import com.whistle6.webfluxdemo.user.domain.UserModel;
 import com.whistle6.webfluxdemo.user.repository.UserRepository;
 
@@ -13,6 +18,7 @@ import reactor.core.publisher.Mono;
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService{
+    private final TokenService tokenService;
     private final UserRepository userRepository;
 
     @Override
@@ -65,13 +71,24 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public Mono<UserModel> login(LoginDTO loginDTO) {
+    public Mono<Messenger> login(LoginDTO loginDTO) {
         return userRepository.findByEmail(loginDTO.getEmail())
             .filter(i -> i.getPassword().equals(loginDTO.getPassword()))
-            .map(i -> {
-                i.setPassword("");
-                return i;
-            });
+            .log()
+            .flatMap(i -> Mono.just(Messenger.builder()
+                .data(
+                    UserDTO.builder()
+                    .id(i.getId())
+                    .email(i.getEmail())
+                    .firstName(i.getFirstName())
+                    .lastName(i.getLastName())
+                    .build()
+                )
+                .message("Login success")
+                .accessToken(tokenService.generateToken(i, false))
+                .refreshToken(tokenService.createRefreshToken(i))
+                .build())
+            );
     }
     
 }
